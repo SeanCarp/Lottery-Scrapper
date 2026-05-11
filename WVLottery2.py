@@ -3,18 +3,37 @@ from bs4 import BeautifulSoup
 import smtplib
 from email.mime.text import MIMEText
 
-LINK = 'https://www.wvlottery.com/scratch-offs'
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+LINK = 'https://www.wvlottery.com/games/scratch-offs'
 
 #Loads the website by emulation [Requirement of WVLottery]
 def emulate_webbrowser(LINK):
-    opener = urllib2.build_opener()
-    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-    response = opener.open(LINK)
-    return BeautifulSoup(response, 'html.parser') # Loads up the main URL
+
+    #This allows chrome to load while being headless
+    options = Options() #Webpage is open for ~3secs
+    options.add_argument('--window-size=1920,1080')
+    options.add_argument('--headless')
+
+    #Loads the url
+    driver = webdriver.Chrome(options=options)
+    driver.get(LINK)
+    
+    html = driver.page_source
+    print(f'Successful webpage scrape {LINK}')
+    print()
+    driver.quit() #Closes the webpage
+
+    return BeautifulSoup(html, 'html.parser')
 
 #Scrapes the main page & returns list of (tiles, links)
 def scrape_main(LINK):
     soup = emulate_webbrowser(LINK)
+    main = soup.main
+    
+
+
     div = soup.main.article.find(id="results").find_all('div')
     tickets = []
     for i in div:
@@ -67,48 +86,22 @@ def calc_and_sort_data(ticket_data):
         percentage = round(half - (.5* sub* (1.0-(o*r)/t)/half), 2)
         item["Percentage"] = percentage
     return sorted(ticket_data, key=lambda d: d['Percentage'])
-
-
-#This is the same function as the one in MDLottery
-def text_message(subject, body, *to):
-    text = f'\n{body["Title"]}\nPrice: {body["Price"]}    Odds: {body["Odds"]}\nChance of being (+): {body["Percentage"]}'
-    msg = MIMEText(text) #Not sure what this does but, I know it works
-
-    if(len(to) == 2):
-        mobile_providers = {'at&t': '@mms.att.net',
-                        'cricket wireless': '@mms.att.net',
-                        'metro pcs': '@metropcs.sms.us',
-                        'tmobile': '@tmomail.net',
-                        'us cellular': '@email.uscc.net',
-                        'verizon': '@vtext.com'}
-        msg['to'] = to[0] + mobile_providers.get(to[1])
-    else:
-        msg['to'] = to[0]
-    
-    msg['subject'] = subject
-    msg['from'] = "swcarpenter04@gmail.com"
-    password = "hwreortjnqwtjqcg"
-
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.starttls()
-    server.login("swcarpenter04@gmail.com", password)
-    server.send_message(msg)
-    print('Sent')
     
 
-def main(phone_number): #Completed email address
+def main(): #Completed email address
     tickets = scrape_main(LINK)
     ticket_data = list(filter(None, [scrape_ticket(item) for item in tickets]))
     ticket_data = calc_and_sort_data(ticket_data)
-    [text_message('WV Lottery', x, phone_number) for x in ticket_data[-4:]]
+
+    print("\n".join(str(x) for x in ticket_data[-9:]))
+    if len(ticket_data) != 0:
+        return "\n".join(str(x) for x in ticket_data[-9:])
+    
+    return "There are no good tickets"
 
 #RUN THE FUNCTIONS
 if __name__ == '__main__':
-    print("WARNING: All text messages will come from swcarpenter04@gmail.com")
-    mobile_provider = input("Enter mobile provider (AT&T, Cricket Wireless, Metro PCS, Tmobile, US Cellular, Verizon)\n").lower()
-    phone_number = input("Please enter phone number (raw digits)\n")
-    
     tickets = scrape_main(LINK)
     ticket_data = list(filter(None,[scrape_ticket(item) for item in tickets]))
     ticket_data = calc_and_sort_data(ticket_data)
-    [text_message('WV Lottery', x, phone_number, mobile_provider) for x in ticket_data[-4:]]
+    print("\n".join(str(x) for x in ticket_data[-9:]))
