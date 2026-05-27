@@ -1,7 +1,7 @@
 import sys, os, time, pickle
 from datetime import datetime
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from Result import Result
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# from Result import Result
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -189,6 +189,7 @@ def pretty_print(data:list[list]) -> None:
     return output
 
 def main() -> 'Result':
+    # TODO: Create an optional paramenter called 'threshold' that allows a user to select the threshold in 'recalculate_odds()'
     try:
         tickets = load_pickle(LINKS_PICKLE, scrape_top_40, TOP_40_LINK)
         ticket_data = load_pickle(TICKET_DATA_PICKLE, scrape_scratch, SCRATCH_LINK, tickets)
