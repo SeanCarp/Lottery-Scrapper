@@ -1,2 +1,5 @@
-*40_links.pkl
+.cache/
+.venv/
+__pycache__/
+*_links.pkl
 *_ticket_data.pkl

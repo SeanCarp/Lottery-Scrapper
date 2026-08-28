@@ -1,7 +1,8 @@
 [project]
 name = "lottery-scrapper"
 version = "0.1.0"
-description = "Add your description here"
+description = "Maryland and West Virginia scratch-off lottery scrapers"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = ["beautifulsoup4>=4.13.4"]
+
